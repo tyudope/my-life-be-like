@@ -9,8 +9,8 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8",
         extra="ignore",
     )
-    database_url:str
-    anthropic_api_key:str
+    DATABASE_URL:str
+    ANTHROPIC_API_KEY:str
 
     
 
