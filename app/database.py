@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from sqlalchemy import create_engine
 from app.config import settings
 
@@ -6,6 +6,9 @@ from app.config import settings
 engine = create_engine(url = settings.database_url)
 
 SessionLocal = sessionmaker(bind = engine)
+
+class Base(DeclarativeBase):
+    pass
 
 def get_db():
     db = SessionLocal() # Open a fresh session for this request.
@@ -15,4 +18,3 @@ def get_db():
         db.close() # always runs, even if the route raised.
 
 
-        
