@@ -51,3 +51,14 @@ class ExerciseSet(Base):
     workout_id:Mapped[int] = mapped_column(ForeignKey("workout.id"))
     exercise_id:Mapped[int] = mapped_column(ForeignKey("exercise.id"))
     workout:Mapped["Workout"] = relationship(back_populates="sets")
+
+
+# Bodyweight
+
+class BodyWeight(Base):
+
+    __tablename__ = "bodyweight"
+
+    id:Mapped[int] = mapped_column(primary_key=True)
+    weight:Mapped[float]
+    date:Mapped[datetime] = mapped_column(server_default=func.now())

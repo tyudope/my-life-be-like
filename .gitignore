@@ -1,4 +1,23 @@
-#Environments
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
 .venv/
+venv/
+
+# Environment variables (secrets!)
 .env
 
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Distribution / build
+*.egg-info/
+dist/
+build/
