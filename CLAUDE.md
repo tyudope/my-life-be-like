@@ -37,6 +37,9 @@ assuming a migration will run.
 - `app/create_tables.py` — `Base.metadata.create_all`
 - `app/main.py` — FastAPI app, router wiring, `/static` mount, `/` → dashboard
 - `app/static/index.html` — the entire frontend (markup + CSS + JS in one file)
+- `scripts/seed_demo.py` — backfills demo training/bodyweight history (`--wipe` undoes it);
+  everything it writes is dated <= 2026-08-18 so it never collides with real sessions
+- `docs/screenshots/` — images used by the README
 - `app/agent/` — the AI agent
   - `tools.py` — tool functions + their tool-schema dicts
   - `agent.py` — the `run_agent` loop (client, `SYSTEM_PROMPT`, `TOOLS`, `TOOL_FUNCTIONS`)

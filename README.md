@@ -6,14 +6,14 @@ data that reads the log before it says anything.
 
 The point isn't another tracker. It's that the advice is grounded: when you ask
 *"should I add weight to bench?"*, the model doesn't guess — it calls a tool, pulls
-your actual last twelve sets out of Postgres, and answers from those numbers.
+your actual set history out of Postgres, and answers from those numbers.
 
-```
-> should I add weight to bench?
-advisor  You've hit 3×8 at 80kg three sessions running, last one on the 14th.
-         That's not a plateau, that's a green light. Go 82.5 and expect 6-7 reps
-         on the last set.
-```
+![The dashboard: stats bar, bench-press progression chart, and the advisor answering from the log](docs/screenshots/dashboard.jpg)
+
+*Left: six weeks of bench press, 94 kg → 105 kg. Right: the advisor answering
+"should I add weight to bench next session?" — it called `get_exercise_history`,
+read the actual progression, cross-checked `get_bodyweight`, and came back with
+107.5 kg and the reasoning for it. Nothing in that answer is hardcoded.*
 
 ---
 
@@ -23,10 +23,22 @@ advisor  You've hit 3×8 at 80kg three sessions running, last one on the 14th.
 - **Books** — title, total pages, pages read. Progress is derived, never a checkbox.
 - **Bodyweight** — timestamped log with a trend you can actually read.
 - **Workouts** — a workout is a named session; inside it, sets of an exercise with
-  weight, reps, and set number. Log a new session from a saved "routine" (a previous
-  workout's structure) and it pre-fills your last known numbers.
-- **History & progress** — session history, plus an SVG chart per exercise (top set
-  weight, total volume, or total reps) drawn by hand, no chart library.
+  weight, reps, and set number.
+- **History & progress** — session history grouped by routine, plus an SVG chart per
+  exercise (top set weight, total volume, or total reps) drawn by hand, no chart library.
+
+![History tab: every routine and every session under it, newest first](docs/screenshots/history.jpg)
+
+*History groups sessions under the routine they belong to — `PULL · 7 sessions ·
+27,990 kg total` — and prints each one in `weight×reps` shorthand.*
+
+**Logging is the part that has to be fast.** Pick a routine and it comes back with
+last session's exercises already filled in, so a normal session is "change two
+numbers, hit log" rather than re-entering everything.
+
+![Log Workout tab: routine picker with PULL, PUSH and LEGS, pre-filled with last session's numbers](docs/screenshots/log-workout.jpg)
+
+*Each exercise shows `last:` on the right so you know what you're beating.*
 
 **The advisor**
 - A terminal-style panel wired to `POST /agent/ask`.
@@ -102,6 +114,21 @@ uvicorn app.main:app --reload
 
 - Dashboard → <http://127.0.0.1:8000/>
 - Interactive API docs → <http://127.0.0.1:8000/docs>
+
+**Optional — demo data**
+
+An empty log makes for a boring dashboard. `scripts/seed_demo.py` backfills six weeks
+of PUSH/PULL/LEGS sessions and a bodyweight trend (it's what's in the screenshots
+above):
+
+```bash
+python -m scripts.seed_demo          # insert — idempotent, safe to re-run
+python -m scripts.seed_demo --wipe   # remove it again
+```
+
+Everything it writes is dated on or before 2026-08-18, and `--wipe` only deletes rows
+on or before that date — so it sits behind your real sessions and can be removed
+without touching them.
 
 ---
 

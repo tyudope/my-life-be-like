@@ -719,6 +719,9 @@ async function loadAll() {
   const [books, bodyweight, exercises, workouts, sets] = await Promise.all([
     get("/books"), get("/bodyweight"), get("/exercises"), get("/workouts"), get("/sets"),
   ]);
+  // the API returns rows in insertion order; everything downstream (the trend stat,
+  // the table's .reverse(), the chart) assumes oldest -> newest, so sort once here.
+  bodyweight.sort((a, b) => new Date(a.date) - new Date(b.date));
   Object.assign(state, { books, bodyweight, exercises, workouts, sets });
   renderStats();
   renderBooks();
