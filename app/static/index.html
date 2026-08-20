@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY LIFE BE LIKE — OPS LOG</title>
+<style>
+  :root{
+    --bg:       #0c0d09;
+    --panel:    #14150f;
+    --panel-2:  #191a13;
+    --border:   #3a3c2c;
+    --border-lo:#26271c;
+    --text:     #d9d8c8;
+    --muted:    #85806a;
+    --accent:   #c8862f;
+    --accent-2: #7c8a54;
+    --danger:   #a8402b;
+    --good:     #7c9b57;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:15px;
+    line-height:1.55;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  }
+
+  ::selection{ background:var(--accent); color:#0c0d09; }
+
+  a{ color:var(--accent); }
+
+  input, select, button, textarea{
+    font-family:var(--mono);
+    font-size:14px;
+    background:var(--panel-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:0;
+    padding:7px 9px;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{ border-color:var(--accent); }
+
+  button{
+    cursor:pointer;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+    transition:background .1s, color .1s;
+  }
+  button:hover{ background:var(--accent); color:#0c0d09; border-color:var(--accent); }
+  button.danger:hover{ background:var(--danger); border-color:var(--danger); color:#eee; }
+  button.ghost{ background:transparent; }
+  button:disabled{ opacity:.35; cursor:default; }
+  button:disabled:hover{ background:transparent; color:var(--text); }
+
+  /* ---------- layout ---------- */
+  .shell{
+    max-width:1400px;
+    margin:0 auto;
+    padding:18px 20px 60px;
+  }
+
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--border);
+    padding-bottom:12px;
+    margin-bottom:16px;
+  }
+  header.top h1{
+    margin:0;
+    font-size:23px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+  header.top h1 span{ color:var(--accent); }
+  header.top .sub{
+    color:var(--muted);
+    font-size:12.5px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+  #clock{ color:var(--muted); font-size:12.5px; letter-spacing:.05em; }
+
+  /* stat strip */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    margin-bottom:18px;
+  }
+  .stat{
+    background:var(--panel);
+    padding:12px 14px;
+  }
+  .stat .label{
+    color:var(--muted);
+    font-size:11px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+  }
+  .stat .value{
+    font-size:25px;
+    font-weight:700;
+    margin-top:5px;
+    color:var(--text);
+  }
+  .stat .value.accent{ color:var(--accent); }
+  .stat .value.good{ color:var(--good); }
+  .stat .value.bad{ color:var(--danger); }
+
+  /* main grid: content + terminal */
+  .layout{
+    display:grid;
+    grid-template-columns:1fr 380px;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width:980px){
+    .layout{ grid-template-columns:1fr; }
+  }
+
+  /* tabs */
+  .tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    margin-bottom:0;
+  }
+  .tabs button{
+    flex:1;
+    background:var(--panel);
+    border:none;
+    padding:11px 8px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .tabs button.active{
+    background:var(--accent);
+    color:#0c0d09;
+  }
+  .tabs button:hover{ color:#0c0d09; }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-top:none;
+    padding:16px;
+  }
+  .panel h2{
+    margin:0 0 12px;
+    font-size:15px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border-bottom:1px solid var(--border-lo);
+    padding-bottom:9px;
+  }
+  .panel h3{
+    margin:18px 0 10px;
+    font-size:12.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  .section{ display:none; }
+  .section.active{ display:block; }
+
+  form.entity-form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:flex-end;
+    margin-bottom:16px;
+    padding:12px;
+    background:var(--panel-2);
+    border:1px solid var(--border-lo);
+  }
+  form.entity-form .field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  form.entity-form label{
+    font-size:10.5px;
+    color:var(--muted);
+    letter-spacing:.07em;
+    text-transform:uppercase;
+  }
+  form.entity-form input, form.entity-form select{ min-width:110px; }
+  form.entity-form .actions{ display:flex; gap:6px; margin-left:auto; }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+  thead th{
+    text-align:left;
+    color:var(--muted);
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    border-bottom:1px solid var(--border);
+    padding:7px 8px;
+  }
+  tbody td{
+    padding:8px 8px;
+    border-bottom:1px solid var(--border-lo);
+  }
+  tbody tr:hover{ background:var(--panel-2); }
+  td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .row-actions button{ padding:4px 8px; font-size:11px; }
+
+  .empty{ color:var(--muted); padding:14px 0; font-style:italic; }
+
+  .bar-track{
+    height:6px;
+    background:var(--border-lo);
+    width:100%;
+    position:relative;
+  }
+  .bar-fill{
+    height:100%;
+    background:var(--accent-2);
+  }
+
+  /* ---------- terminal / chat ---------- */
+  .terminal{
+    background:#0a0b07;
+    border:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    height:calc(100vh - 150px);
+    min-height:480px;
+    position:sticky;
+    top:18px;
+  }
+  .terminal .term-head{
+    background:var(--panel-2);
+    border-bottom:1px solid var(--border);
+    padding:8px 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .terminal .term-head .dot{
+    display:inline-block;
+    width:7px; height:7px;
+    background:var(--good);
+    margin-right:6px;
+    border-radius:50%;
+  }
+  .term-log{
+    flex:1;
+    overflow-y:auto;
+    padding:12px;
+    font-size:14px;
+  }
+  .term-log::-webkit-scrollbar{ width:8px; }
+  .term-log::-webkit-scrollbar-thumb{ background:var(--border); }
+  .term-line{ margin-bottom:12px; white-space:pre-wrap; word-break:break-word; }
+  .term-line .tag{
+    color:var(--muted);
+    font-size:11px;
+    letter-spacing:.07em;
+    display:block;
+    margin-bottom:2px;
+  }
+  .term-line.user .tag{ color:var(--accent-2); }
+  .term-line.user .body::before{ content:"> "; color:var(--accent-2); }
+  .term-line.ai .tag{ color:var(--accent); }
+  .term-line.ai .body{ color:var(--text); }
+  .term-line.sys .body{ color:var(--muted); font-style:italic; }
+
+  .term-input{
+    display:flex;
+    border-top:1px solid var(--border);
+  }
+  .term-input span{
+    padding:10px 0 10px 12px;
+    color:var(--accent);
+    background:var(--panel-2);
+  }
+  .term-input input{
+    flex:1;
+    border:none;
+    background:var(--panel-2);
+    padding:10px 8px;
+  }
+  .term-input button{
+    border:none;
+    border-left:1px solid var(--border);
+    background:var(--panel-2);
+    padding:0 16px;
+    font-size:12px;
+  }
+
+  .cursor{
+    display:inline-block;
+    width:6px; height:12px;
+    background:var(--accent);
+    vertical-align:middle;
+    animation:blink 1s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  footer.foot{
+    margin-top:24px;
+    color:var(--border);
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    text-align:center;
+  }
+
+  /* ---------- log workout builder ---------- */
+  .log-setup{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:flex-end;
+    margin-bottom:16px;
+    padding:12px;
+    background:var(--panel-2);
+    border:1px solid var(--border-lo);
+  }
+  .log-setup .field{ display:flex; flex-direction:column; gap:4px; }
+  .log-setup label{
+    font-size:10.5px; color:var(--muted); letter-spacing:.07em; text-transform:uppercase;
+  }
+  .log-setup input, .log-setup select{ min-width:170px; }
+  .log-hint{
+    font-size:11px;
+    color:var(--muted);
+    font-style:italic;
+    flex-basis:100%;
+  }
+  #log-copy-hint{
+    font-size:12.5px;
+    color:var(--accent-2);
+    flex-basis:100%;
+  }
+  #log-copy-hint button{
+    font-size:11.5px;
+    padding:6px 10px;
+    margin-left:8px;
+  }
+
+  .log-group{
+    border:1px solid var(--border-lo);
+    background:var(--panel-2);
+    margin-bottom:10px;
+  }
+  .log-group-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:9px 12px;
+    border-bottom:1px solid var(--border-lo);
+  }
+  .log-group-head strong{
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:13px;
+    color:var(--text);
+  }
+  .log-group-head button{ font-size:10.5px; padding:4px 8px; }
+  .log-set-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 12px;
+    border-bottom:1px solid var(--border-lo);
+  }
+  .log-set-row:last-of-type{ border-bottom:none; }
+  .log-set-row .set-no{
+    width:26px;
+    color:var(--muted);
+    font-size:12.5px;
+    text-align:center;
+  }
+  .log-set-row .field{ display:flex; flex-direction:column; gap:3px; }
+  .log-set-row label{ font-size:9.5px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+  .log-set-row input{ width:90px; }
+  .log-set-row .set-remove{ margin-left:auto; font-size:10.5px; padding:4px 8px; }
+  .log-group-foot{ padding:8px 12px; }
+  .log-group-foot button{ font-size:11px; padding:5px 10px; }
+
+  .log-submit-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:14px;
+  }
+  .log-submit-row button{ padding:9px 18px; font-size:12.5px; }
+  .log-status{ font-size:12.5px; color:var(--good); }
+  .log-status.error{ color:var(--danger); }
+  .log-empty{ color:var(--muted); font-style:italic; padding:16px 0; }
+
+  /* ---------- quick log (all workouts, numbers only) ---------- */
+  /* ---------- routine picker ---------- */
+  .routine-picker{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:16px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--border-lo);
+  }
+  .routine-chip{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:2px;
+    padding:8px 14px;
+    text-align:left;
+  }
+  .routine-chip .rc-name{ font-size:12.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+  .routine-chip .rc-sub{ font-size:10px; letter-spacing:.04em; color:var(--muted); text-transform:none; }
+  .routine-chip.active{ background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .routine-chip.active .rc-sub{ color:var(--bg); opacity:.75; }
+
+  /* ---------- history ---------- */
+  .hist-routine{ border:1px solid var(--border-lo); background:var(--panel-2); margin-bottom:10px; }
+  .hist-routine-head{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; cursor:pointer;
+  }
+  .hist-routine-head strong{ font-size:13.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--text); }
+  .hist-routine-head .hist-meta{ font-size:11px; color:var(--muted); letter-spacing:.04em; }
+  .hist-routine-head .hist-caret{ margin-left:auto; font-size:11px; color:var(--muted); }
+  .hist-session{
+    padding:10px 12px;
+    border-top:1px solid var(--border-lo);
+  }
+  .hist-session-head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .hist-session-date{ font-size:11.5px; color:var(--text); letter-spacing:.04em; }
+  .hist-session-vol{ font-size:10.5px; color:var(--muted); }
+  .hist-session-head .row-actions{ margin-left:auto; }
+  .hist-session-head button{ font-size:10px; padding:3px 7px; }
+  .hist-ex{ display:flex; gap:10px; font-size:12px; padding:2px 0; }
+  .hist-ex .hist-ex-name{ min-width:170px; color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.05em; padding-top:2px; }
+  .hist-ex .hist-ex-sets{ color:var(--text); font-variant-numeric:tabular-nums; }
+  .hist-last{ font-size:10.5px; color:var(--accent); letter-spacing:.05em; }
+
+  .quicklog-meta{
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:.04em;
+    margin-left:10px;
+    white-space:nowrap;
+  }
+  .quicklog-head-left{ display:flex; align-items:baseline; min-width:0; }
+  .quicklog-head-actions{ display:flex; gap:6px; margin-left:auto; }
+
+  /* ---------- progress chart ---------- */
+  .progress-controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:flex-end;
+    margin-bottom:16px;
+    padding:12px;
+    background:var(--panel-2);
+    border:1px solid var(--border-lo);
+  }
+  .progress-controls .field{ display:flex; flex-direction:column; gap:4px; }
+  .progress-controls label{ font-size:10.5px; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; }
+  .progress-controls select{ min-width:190px; }
+
+  #progress-chart-wrap{
+    background:#0a0b07;
+    border:1px solid var(--border-lo);
+    padding:10px;
+  }
+  #progress-chart{ width:100%; height:auto; display:block; overflow:visible; }
+  .chart-empty{
+    color:var(--muted);
+    font-style:italic;
+    padding:60px 0;
+    text-align:center;
+  }
+  .chart-tooltip{
+    position:absolute;
+    pointer-events:none;
+    background:var(--panel);
+    border:1px solid var(--accent);
+    padding:7px 10px;
+    font-size:13px;
+    color:var(--text);
+    white-space:nowrap;
+    transform:translate(-50%, -115%);
+    z-index:5;
+  }
+  .chart-tooltip .tt-value{
+    font-weight:700;
+    color:var(--text);
+    font-size:14px;
+  }
+  .chart-tooltip .tt-date{
+    color:var(--muted);
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+  #progress-chart-outer{ position:relative; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="top">
+    <div>
+      <h1>MY LIFE BE LIKE <span>// OPS LOG</span></h1>
+      <div class="sub">books · lifts · bodyweight — single source of truth</div>
+    </div>
+    <div id="clock">--:--:--</div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="layout">
+
+    <div>
+      <div class="tabs" id="tabs">
+        <button data-tab="books" class="active">Books</button>
+        <button data-tab="bodyweight">Bodyweight</button>
+        <button data-tab="workout">Workout</button>
+        <button data-tab="log">Log Workout</button>
+        <button data-tab="history">History</button>
+        <button data-tab="progress">Progress</button>
+      </div>
+
+      <!-- BOOKS -->
+      <div class="panel section active" id="section-books">
+        <h2>Books</h2>
+        <form class="entity-form" id="form-books">
+          <div class="field"><label>Title</label><input name="name" required maxlength="100" placeholder="the pragmatic programmer"></div>
+          <div class="field"><label>Total pages</label><input name="total_page" type="number" min="1" required></div>
+          <div class="field"><label>Completed pages</label><input name="completed_page" type="number" min="0" value="0"></div>
+          <div class="actions">
+            <button type="submit" data-mode="create">Add book</button>
+            <button type="button" class="ghost" data-cancel style="display:none">Cancel</button>
+          </div>
+        </form>
+        <table>
+          <thead><tr><th>Title</th><th>Progress</th><th class="num">%</th><th class="num">Added</th><th></th></tr></thead>
+          <tbody id="rows-books"></tbody>
+        </table>
+      </div>
+
+      <!-- BODYWEIGHT -->
+      <div class="panel section" id="section-bodyweight">
+        <h2>Bodyweight log</h2>
+        <form class="entity-form" id="form-bodyweight">
+          <div class="field"><label>Weight (kg)</label><input name="weight" type="number" step="0.1" min="0" required></div>
+          <div class="actions">
+            <button type="submit" data-mode="create">Log entry</button>
+            <button type="button" class="ghost" data-cancel style="display:none">Cancel</button>
+          </div>
+        </form>
+        <table>
+          <thead><tr><th>Date</th><th class="num">Weight</th><th></th></tr></thead>
+          <tbody id="rows-bodyweight"></tbody>
+        </table>
+      </div>
+
+      <!-- WORKOUT (build a new one: name it, add exercises with sets/weight/reps, done) -->
+      <div class="panel section" id="section-workout">
+        <h2>Workout</h2>
+        <div class="log-setup">
+          <div class="field">
+            <label>Workout name</label>
+            <input id="log-name" list="log-workout-names" placeholder="push day" maxlength="20">
+            <datalist id="log-workout-names"></datalist>
+          </div>
+          <div class="field">
+            <label>Exercise</label>
+            <input id="log-quick-exercise" list="log-exercise-names" placeholder="bench press" maxlength="100">
+            <datalist id="log-exercise-names"></datalist>
+          </div>
+          <div class="field"><label>Sets</label><input id="log-quick-sets" type="number" min="1" value="3" style="width:64px"></div>
+          <div class="field"><label>Weight</label><input id="log-quick-weight" type="number" step="0.5" min="0" value="0" style="width:80px"></div>
+          <div class="field"><label>Reps</label><input id="log-quick-reps" type="number" min="1" value="8" style="width:70px"></div>
+          <button type="button" id="log-add-exercise">+ Add to workout</button>
+          <button type="button" class="ghost" id="log-clear">Clear</button>
+          <div class="log-hint">press enter to add — a name that doesn't exist yet gets created automatically</div>
+        </div>
+
+        <div id="log-groups"></div>
+
+        <div class="log-submit-row">
+          <button type="button" id="log-submit">Create workout</button>
+          <span class="log-status" id="log-status"></span>
+        </div>
+      </div>
+
+      <!-- LOG WORKOUT (pick a routine, it comes prefilled from its last session) -->
+      <div class="panel section" id="section-log">
+        <h2>Log workout</h2>
+        <div class="log-hint" style="margin-bottom:12px">pick a routine — it comes back with last session's exercises and numbers. change the weights/reps, hit log.</div>
+        <div class="routine-picker" id="routine-picker"></div>
+        <div id="quicklog-body"></div>
+      </div>
+
+      <!-- HISTORY (every routine, every session it ever had) -->
+      <div class="panel section" id="section-history">
+        <h2>History</h2>
+        <div class="log-hint" style="margin-bottom:12px">every routine and every session under it — newest first</div>
+        <div id="history-body"></div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="panel section" id="section-progress">
+        <h2>Progress</h2>
+        <div class="progress-controls">
+          <div class="field"><label>Exercise</label><select id="progress-exercise"></select></div>
+          <div class="field">
+            <label>Metric</label>
+            <select id="progress-metric">
+              <option value="max_weight">Top set weight</option>
+              <option value="volume">Total volume</option>
+              <option value="reps">Total reps</option>
+            </select>
+          </div>
+        </div>
+        <div id="progress-chart-outer">
+          <div id="progress-chart-wrap"><svg id="progress-chart"></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI TERMINAL -->
+    <div class="terminal">
+      <div class="term-head"><span><span class="dot"></span>ADVISOR — fitness &amp; books</span><span>local session</span></div>
+      <div class="term-log" id="term-log">
+        <div class="term-line sys"><span class="body">connected. ask about your lifts, your reading, or your bodyweight trend. it reads your log before it answers.</span></div>
+      </div>
+      <form class="term-input" id="term-form">
+        <span>&gt;</span>
+        <input id="term-input" autocomplete="off" placeholder="e.g. should I add weight to bench?">
+        <button type="submit">SEND</button>
+      </form>
+    </div>
+
+  </div>
+
+  <footer class="foot">books · sets · reps · pages — logged, not vibed</footer>
+</div>
+
+<script>
+const API = "";
+
+const state = { books: [], bodyweight: [], exercises: [], workouts: [], sets: [] };
+const editing = { books: null, bodyweight: null };
+
+// ---------- fetch helpers ----------
+async function api(path, opts) {
+  const res = await fetch(API + path, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+  });
+  if (res.status === 204) return null;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "request failed");
+  }
+  return res.json();
+}
+const get = (p) => api(p);
+const post = (p, body) => api(p, { method: "POST", body: JSON.stringify(body) });
+const patch = (p, body) => api(p, { method: "PATCH", body: JSON.stringify(body) });
+const del = (p) => api(p, { method: "DELETE" });
+
+// ---------- clock ----------
+function tickClock() {
+  document.getElementById("clock").textContent = new Date().toLocaleString("en-GB", {
+    hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).replace(",", "");
+}
+setInterval(tickClock, 1000); tickClock();
+
+// ---------- tabs ----------
+document.getElementById("tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+  document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+  document.getElementById("section-" + btn.dataset.tab).classList.add("active");
+});
+
+// ---------- load all ----------
+async function loadAll() {
+  const [books, bodyweight, exercises, workouts, sets] = await Promise.all([
+    get("/books"), get("/bodyweight"), get("/exercises"), get("/workouts"), get("/sets"),
+  ]);
+  Object.assign(state, { books, bodyweight, exercises, workouts, sets });
+  renderStats();
+  renderBooks();
+  renderBodyweight();
+  populateLogSetup();
+  renderRoutinePicker();
+  renderQuickLog();
+  renderHistory();
+  populateProgressExerciseSelect();
+  renderProgressChart();
+}
+
+// ---------- stats ----------
+function renderStats() {
+  const b = state.books, bw = state.bodyweight, ex = state.exercises, wo = state.workouts, st = state.sets;
+  const completedBooks = b.filter((x) => x.completed_page >= x.total_page && x.total_page > 0).length;
+  const pagesRead = b.reduce((a, x) => a + x.completed_page, 0);
+  const latestWeight = bw.length ? bw[bw.length - 1].weight : null;
+  const firstWeight = bw.length ? bw[0].weight : null;
+  const weightDelta = latestWeight != null && firstWeight != null ? (latestWeight - firstWeight) : null;
+  const totalVolume = st.reduce((a, x) => a + x.weight * x.reps, 0);
+  const weekAgo = Date.now() - 7 * 86400000;
+  const workoutsThisWeek = wo.filter((w) => new Date(w.date).getTime() >= weekAgo).length;
+
+  const cards = [
+    ["Books", b.length],
+    ["Completed", completedBooks],
+    ["Pages read", pagesRead],
+    ["Bodyweight", latestWeight != null ? latestWeight.toFixed(1) + " kg" : "—",
+      weightDelta == null ? "" : (weightDelta > 0 ? "bad" : weightDelta < 0 ? "good" : "")],
+    ["Exercises", ex.length],
+    ["Workouts", wo.length],
+    ["This week", workoutsThisWeek, "accent"],
+    ["Total sets", st.length],
+    ["Volume (kg)", Math.round(totalVolume).toLocaleString()],
+  ];
+
+  document.getElementById("stats").innerHTML = cards.map(
+    ([label, value, cls]) => `<div class="stat"><div class="label">${label}</div><div class="value ${cls || ""}">${value}</div></div>`
+  ).join("");
+}
+
+// ---------- generic form helpers ----------
+function bindForm(entity, { onSubmit, resetExtra }) {
+  const form = document.getElementById("form-" + entity);
+  const cancelBtn = form.querySelector("[data-cancel]");
+  const submitBtn = form.querySelector('[type="submit"]');
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      await onSubmit(data, editing[entity]);
+      exitEditMode(entity);
+      await loadAll();
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  cancelBtn.addEventListener("click", () => exitEditMode(entity));
+
+  function exitEditMode(ent) {
+    editing[ent] = null;
+    form.reset();
+    if (resetExtra) resetExtra();
+    submitBtn.textContent = submitBtn.dataset.createLabel || submitBtn.textContent;
+    cancelBtn.style.display = "none";
+  }
+}
+
+function enterEditMode(entity, row, fillForm) {
+  editing[entity] = row.id;
+  const form = document.getElementById("form-" + entity);
+  const submitBtn = form.querySelector('[type="submit"]');
+  if (!submitBtn.dataset.createLabel) submitBtn.dataset.createLabel = submitBtn.textContent;
+  submitBtn.textContent = "Save changes";
+  form.querySelector("[data-cancel]").style.display = "inline-block";
+  fillForm(form, row);
+  form.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ---------- BOOKS ----------
+function renderBooks() {
+  const tbody = document.getElementById("rows-books");
+  if (!state.books.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty">no books logged yet</td></tr>`; return; }
+  tbody.innerHTML = state.books.map((b) => {
+    const pct = b.total_page ? Math.min(100, Math.round((b.completed_page / b.total_page) * 100)) : 0;
+    return `<tr>
+      <td>${esc(b.name)}</td>
+      <td><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <div style="color:var(--muted);font-size:10px;margin-top:3px">${b.completed_page} / ${b.total_page} pg</div></td>
+      <td class="num">${pct}%</td>
+      <td class="num">${fmtDate(b.created_at)}</td>
+      <td><div class="row-actions">
+        <button type="button" data-edit="${b.id}">Edit</button>
+        <button type="button" class="danger" data-del="${b.id}">Del</button>
+      </div></td>
+    </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll("[data-edit]").forEach((btn) => btn.addEventListener("click", () => {
+    const row = state.books.find((x) => x.id == btn.dataset.edit);
+    enterEditMode("books", row, (form, r) => {
+      form.name.value = r.name; form.total_page.value = r.total_page; form.completed_page.value = r.completed_page;
+    });
+  }));
+  tbody.querySelectorAll("[data-del]").forEach((btn) => btn.addEventListener("click", async () => {
+    if (!confirm("Delete this book?")) return;
+    await del("/books/" + btn.dataset.del); await loadAll();
+  }));
+}
+bindForm("books", {
+  onSubmit: async (data, id) => {
+    const payload = { name: data.name, total_page: +data.total_page, completed_page: +data.completed_page || 0 };
+    if (id) await patch(`/books/${id}`, payload); else await post("/books", payload);
+  },
+});
+
+// ---------- BODYWEIGHT ----------
+function renderBodyweight() {
+  const tbody = document.getElementById("rows-bodyweight");
+  if (!state.bodyweight.length) { tbody.innerHTML = `<tr><td colspan="3" class="empty">no entries yet</td></tr>`; return; }
+  tbody.innerHTML = [...state.bodyweight].reverse().map((e) => `<tr>
+      <td>${fmtDate(e.date)}</td>
+      <td class="num">${e.weight.toFixed(1)} kg</td>
+      <td><div class="row-actions">
+        <button type="button" data-edit="${e.id}">Edit</button>
+        <button type="button" class="danger" data-del="${e.id}">Del</button>
+      </div></td>
+    </tr>`).join("");
+
+  tbody.querySelectorAll("[data-edit]").forEach((btn) => btn.addEventListener("click", () => {
+    const row = state.bodyweight.find((x) => x.id == btn.dataset.edit);
+    enterEditMode("bodyweight", row, (form, r) => { form.weight.value = r.weight; });
+  }));
+  tbody.querySelectorAll("[data-del]").forEach((btn) => btn.addEventListener("click", async () => {
+    if (!confirm("Delete this entry?")) return;
+    await del("/bodyweight/" + btn.dataset.del); await loadAll();
+  }));
+}
+bindForm("bodyweight", {
+  onSubmit: async (data, id) => {
+    const payload = { weight: +data.weight };
+    if (id) await patch(`/bodyweight/${id}`, payload); else await post("/bodyweight", payload);
+  },
+});
+
+// ---------- WORKOUT BUILDER (create a new workout: name it, add exercises with sets/weight/reps) ----------
+let logDraft = []; // [{ exercise_id, exercise_name, sets: [{ weight, reps }] }]
+
+const logNameInput = document.getElementById("log-name");
+const logGroupsEl = document.getElementById("log-groups");
+const logStatusEl = document.getElementById("log-status");
+const logQuickExercise = document.getElementById("log-quick-exercise");
+const logQuickSets = document.getElementById("log-quick-sets");
+const logQuickWeight = document.getElementById("log-quick-weight");
+const logQuickReps = document.getElementById("log-quick-reps");
+
+function populateLogSetup() {
+  // distinct past workout names, most recent first — just autocomplete convenience
+  const seen = new Set();
+  const names = [];
+  [...state.workouts].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((w) => {
+    const key = w.name.toLowerCase();
+    if (!seen.has(key)) { seen.add(key); names.push(w.name); }
+  });
+  document.getElementById("log-workout-names").innerHTML = names.map((n) => `<option value="${esc(n)}">`).join("");
+  document.getElementById("log-exercise-names").innerHTML = state.exercises.map((e) => `<option value="${esc(e.name)}">`).join("");
+}
+
+function lastKnownSetFor(exerciseId) {
+  const matching = state.sets.filter((s) => s.exercise_id === exerciseId);
+  if (!matching.length) return { weight: 0, reps: 0 };
+  // sets don't carry a date themselves — use the highest id as "most recent logged"
+  const latest = matching.reduce((a, b) => (b.id > a.id ? b : a));
+  return { weight: latest.weight, reps: latest.reps };
+}
+
+// autofill weight/reps with what you last did for this exercise, as soon as the typed name matches one
+logQuickExercise.addEventListener("input", () => {
+  const match = state.exercises.find((e) => e.name.toLowerCase() === logQuickExercise.value.trim().toLowerCase());
+  if (!match) return;
+  const seed = lastKnownSetFor(match.id);
+  if (seed.weight || seed.reps) { logQuickWeight.value = seed.weight; logQuickReps.value = seed.reps; }
+});
+
+// one shot: type an exercise (new or existing), how many sets, a starting weight/reps — adds the whole group at once
+async function addExerciseQuick() {
+  const name = logQuickExercise.value.trim();
+  if (!name) return;
+
+  let exercise = state.exercises.find((e) => e.name.toLowerCase() === name.toLowerCase());
+  if (exercise && logDraft.some((g) => g.exercise_id === exercise.id)) {
+    logStatusEl.textContent = `"${exercise.name}" is already in this workout — edit its sets below.`;
+    logStatusEl.className = "log-status error";
+    return;
+  }
+
+  if (!exercise) {
+    try {
+      exercise = await post("/exercises", { name });
+      state.exercises.push(exercise);
+      populateLogSetup();
+    } catch (err) {
+      logStatusEl.textContent = err.message || "couldn't create that exercise.";
+      logStatusEl.className = "log-status error";
+      return;
+    }
+  }
+
+  const setsCount = Math.max(1, +logQuickSets.value || 1);
+  const weight = +logQuickWeight.value || 0;
+  const reps = Math.max(1, +logQuickReps.value || 1);
+
+  logDraft.push({
+    exercise_id: exercise.id,
+    exercise_name: exercise.name,
+    sets: Array.from({ length: setsCount }, () => ({ weight, reps })),
+  });
+  logStatusEl.textContent = "";
+  logStatusEl.className = "log-status";
+  renderLogGroups();
+
+  logQuickExercise.value = "";
+  logQuickWeight.value = 0;
+  logQuickReps.value = 8;
+  logQuickExercise.focus();
+}
+
+document.getElementById("log-add-exercise").addEventListener("click", addExerciseQuick);
+[logQuickExercise, logQuickSets, logQuickWeight, logQuickReps].forEach((el) => {
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addExerciseQuick(); }
+  });
+});
+
+document.getElementById("log-clear").addEventListener("click", () => {
+  logDraft = [];
+  logNameInput.value = "";
+  logQuickExercise.value = "";
+  logQuickSets.value = 3;
+  logQuickWeight.value = 0;
+  logQuickReps.value = 8;
+  logStatusEl.textContent = "";
+  logStatusEl.className = "log-status";
+  renderLogGroups();
+});
+
+function renderLogGroups() {
+  if (!logDraft.length) {
+    logGroupsEl.innerHTML = `<div class="log-empty">type an exercise + sets/weight/reps above and hit enter to add it — repeat for every exercise in this workout.</div>`;
+    return;
+  }
+
+  logGroupsEl.innerHTML = logDraft.map((group, gi) => `
+    <div class="log-group">
+      <div class="log-group-head">
+        <strong>${esc(group.exercise_name)}</strong>
+        <button type="button" class="ghost" data-remove-group="${gi}">remove exercise</button>
+      </div>
+      ${group.sets.map((s, si) => `
+        <div class="log-set-row">
+          <div class="set-no">#${si + 1}</div>
+          <div class="field"><label>Weight</label><input type="number" step="0.5" min="0" value="${s.weight}" data-g="${gi}" data-s="${si}" data-f="weight"></div>
+          <div class="field"><label>Reps</label><input type="number" min="1" value="${s.reps}" data-g="${gi}" data-s="${si}" data-f="reps"></div>
+          <button type="button" class="ghost set-remove" data-remove-set="${gi}:${si}">remove set</button>
+        </div>
+      `).join("")}
+      <div class="log-group-foot"><button type="button" class="ghost" data-add-set="${gi}">+ Set</button></div>
+    </div>
+  `).join("");
+
+  logGroupsEl.querySelectorAll("input[data-f]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const g = +inp.dataset.g, s = +inp.dataset.s, f = inp.dataset.f;
+      logDraft[g].sets[s][f] = +inp.value || 0;
+    });
+  });
+  logGroupsEl.querySelectorAll("[data-add-set]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const gi = +btn.dataset.addSet;
+      const group = logDraft[gi];
+      const last = group.sets[group.sets.length - 1] || { weight: 0, reps: 0 };
+      group.sets.push({ ...last });
+      renderLogGroups();
+    });
+  });
+  logGroupsEl.querySelectorAll("[data-remove-set]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [gi, si] = btn.dataset.removeSet.split(":").map(Number);
+      logDraft[gi].sets.splice(si, 1);
+      if (!logDraft[gi].sets.length) logDraft.splice(gi, 1);
+      renderLogGroups();
+    });
+  });
+  logGroupsEl.querySelectorAll("[data-remove-group]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      logDraft.splice(+btn.dataset.removeGroup, 1);
+      renderLogGroups();
+    });
+  });
+}
+
+document.getElementById("log-submit").addEventListener("click", async () => {
+  const name = logNameInput.value.trim();
+  logStatusEl.className = "log-status";
+  if (!name) { logStatusEl.textContent = "give the workout a name first."; logStatusEl.className = "log-status error"; return; }
+  if (!logDraft.length) { logStatusEl.textContent = "add at least one exercise."; logStatusEl.className = "log-status error"; return; }
+
+  const submitBtn = document.getElementById("log-submit");
+  submitBtn.disabled = true;
+  try {
+    const workout = await post("/workouts", { name });
+    let setCount = 0;
+    for (const group of logDraft) {
+      for (let i = 0; i < group.sets.length; i++) {
+        const s = group.sets[i];
+        await post("/sets", {
+          weight: s.weight, set_number: i + 1, reps: s.reps,
+          workout_id: workout.id, exercise_id: group.exercise_id,
+        });
+        setCount++;
+      }
+    }
+    logStatusEl.textContent = `created "${name}" — ${setCount} sets across ${logDraft.length} exercises. find it under Log Workout next time.`;
+    logDraft = [];
+    logNameInput.value = "";
+    renderLogGroups();
+    await loadAll();
+  } catch (err) {
+    logStatusEl.textContent = err.message || "failed to create workout.";
+    logStatusEl.className = "log-status error";
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+renderLogGroups();
+
+// ---------- ROUTINES (a workout name = a routine: PUSH / PULL / LEGS) ----------
+// a "routine" is just every workout sharing a name — the newest one is its template.
+const routineKey = (name) => name.trim().toUpperCase();
+
+function routines() {
+  const byKey = new Map(); // key -> { name, sessions: newest-first }
+  [...state.workouts]
+    .sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id)
+    .forEach((w) => {
+      const k = routineKey(w.name);
+      if (!byKey.has(k)) byKey.set(k, { key: k, name: w.name, sessions: [] });
+      byKey.get(k).sessions.push(w);
+    });
+  // most recently trained routine first
+  return [...byKey.values()].sort((a, b) => new Date(b.sessions[0].date) - new Date(a.sessions[0].date));
+}
+
+function workoutStructure(workout) {
+  const sets = state.sets
+    .filter((s) => s.workout_id === workout.id)
+    .sort((a, b) => a.set_number - b.set_number);
+
+  const byExercise = new Map(); // exercise_id -> sets[]
+  sets.forEach((s) => {
+    if (!byExercise.has(s.exercise_id)) byExercise.set(s.exercise_id, []);
+    byExercise.get(s.exercise_id).push({ weight: s.weight, reps: s.reps });
+  });
+
+  return [...byExercise.entries()].map(([exercise_id, exSets]) => ({
+    exercise_id,
+    exercise_name: state.exercises.find((e) => e.id === exercise_id)?.name || "?",
+    sets: exSets,
+  }));
+}
+
+function workoutVolume(workout) {
+  return state.sets
+    .filter((s) => s.workout_id === workout.id)
+    .reduce((a, s) => a + s.weight * s.reps, 0);
+}
+
+function daysAgo(dateStr) {
+  const d = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  return d <= 0 ? "today" : d === 1 ? "yesterday" : `${d}d ago`;
+}
+
+// ---------- LOG WORKOUT (pick a routine → last session prefilled → new numbers) ----------
+let selectedRoutine = null;            // routine key
+const routineDrafts = new Map();       // routine key -> groups[] (survives tab switches)
+
+function renderRoutinePicker() {
+  const el = document.getElementById("routine-picker");
+  const list = routines();
+
+  if (!list.length) { el.innerHTML = ""; return; }
+  if (!list.some((r) => r.key === selectedRoutine)) selectedRoutine = list[0].key;
+
+  el.innerHTML = list.map((r) => `
+    <button type="button" class="routine-chip${r.key === selectedRoutine ? " active" : ""}" data-routine="${esc(r.key)}">
+      <span class="rc-name">${esc(r.name)}</span>
+      <span class="rc-sub">${r.sessions.length}x · last ${daysAgo(r.sessions[0].date)}</span>
+    </button>`).join("");
+
+  el.querySelectorAll("[data-routine]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedRoutine = btn.dataset.routine;
+      renderRoutinePicker();
+      renderQuickLog();
+    });
+  });
+}
+
+// the draft starts as a copy of the last session's numbers, then the user edits it
+function routineDraft(routine) {
+  if (!routineDrafts.has(routine.key)) {
+    routineDrafts.set(routine.key, workoutStructure(routine.sessions[0]));
+  }
+  return routineDrafts.get(routine.key);
+}
+
+function renderQuickLog() {
+  const container = document.getElementById("quicklog-body");
+  const list = routines();
+
+  if (!list.length) {
+    container.innerHTML = `<div class="log-empty">no routines yet — build one in the Workout tab first (name it "push day", add the exercises once).</div>`;
+    return;
+  }
+
+  const routine = list.find((r) => r.key === selectedRoutine) || list[0];
+  const last = routine.sessions[0];
+  const groups = routineDraft(routine);
+
+  if (!groups.length) {
+    container.innerHTML = `<div class="log-empty">"${esc(routine.name)}" has no exercises recorded — rebuild it in the Workout tab.</div>`;
+    return;
+  }
+
+  const lastGroups = workoutStructure(last);
+
+  container.innerHTML = `
+    ${groups.map((group, gi) => {
+      const lastGroup = lastGroups.find((g) => g.exercise_id === group.exercise_id);
+      const lastText = lastGroup ? lastGroup.sets.map((s) => `${s.weight}×${s.reps}`).join("  ") : "—";
+      return `
+      <div class="log-group">
+        <div class="log-group-head">
+          <strong>${esc(group.exercise_name)}</strong>
+          <span class="hist-last">last: ${esc(lastText)}</span>
+        </div>
+        ${group.sets.map((s, si) => `
+          <div class="log-set-row">
+            <div class="set-no">#${si + 1}</div>
+            <div class="field"><label>Weight</label><input type="number" step="0.5" min="0" value="${s.weight}" data-g="${gi}" data-s="${si}" data-f="weight"></div>
+            <div class="field"><label>Reps</label><input type="number" min="1" value="${s.reps}" data-g="${gi}" data-s="${si}" data-f="reps"></div>
+            <button type="button" class="danger set-remove" data-drop-set="${gi}:${si}">×</button>
+          </div>
+        `).join("")}
+        <div class="log-group-foot"><button type="button" class="ghost" data-add-set2="${gi}">+ set</button></div>
+      </div>`;
+    }).join("")}
+    <div class="log-submit-row">
+      <button type="button" id="quicklog-submit">Log ${esc(routine.name)}</button>
+      <button type="button" class="ghost" id="quicklog-reset">Reset to last session</button>
+      <span class="log-status" id="quicklog-status"></span>
+    </div>`;
+
+  container.querySelectorAll("input[data-f]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      groups[+inp.dataset.g].sets[+inp.dataset.s][inp.dataset.f] = +inp.value || 0;
+    });
+  });
+  container.querySelectorAll("[data-add-set2]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const g = groups[+btn.dataset.addSet2];
+      g.sets.push({ ...(g.sets[g.sets.length - 1] || { weight: 0, reps: 0 }) });
+      renderQuickLog();
+    });
+  });
+  container.querySelectorAll("[data-drop-set]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const [gi, si] = btn.dataset.dropSet.split(":").map(Number);
+      groups[gi].sets.splice(si, 1);
+      if (!groups[gi].sets.length) groups.splice(gi, 1);
+      renderQuickLog();
+    });
+  });
+  document.getElementById("quicklog-reset").addEventListener("click", () => {
+    routineDrafts.delete(routine.key);
+    renderQuickLog();
+  });
+  document.getElementById("quicklog-submit").addEventListener("click", (e) => submitQuickLog(routine, e.target));
+}
+
+async function submitQuickLog(routine, btn) {
+  const statusEl = document.getElementById("quicklog-status");
+  const groups = routineDraft(routine);
+  statusEl.className = "log-status";
+  btn.disabled = true;
+  try {
+    const workout = await post("/workouts", { name: routine.name });
+    let setCount = 0;
+    for (const group of groups) {
+      for (let i = 0; i < group.sets.length; i++) {
+        const s = group.sets[i];
+        await post("/sets", {
+          weight: s.weight, set_number: i + 1, reps: s.reps,
+          workout_id: workout.id, exercise_id: group.exercise_id,
+        });
+        setCount++;
+      }
+    }
+    // next time this routine is opened it should prefill from the session just logged
+    routineDrafts.delete(routine.key);
+    await loadAll();
+    const el = document.getElementById("quicklog-status");
+    if (el) el.textContent = `logged ${routine.name} — ${setCount} sets. see it in History.`;
+  } catch (err) {
+    statusEl.textContent = err.message || "failed to log workout.";
+    statusEl.className = "log-status error";
+    btn.disabled = false;
+  }
+}
+
+// ---------- HISTORY (routines, each with every session under it) ----------
+const historyOpen = new Set(); // routine keys expanded
+
+function renderHistory() {
+  const container = document.getElementById("history-body");
+  const list = routines();
+
+  if (!list.length) {
+    container.innerHTML = `<div class="log-empty">nothing logged yet.</div>`;
+    return;
+  }
+  if (!historyOpen.size) historyOpen.add(list[0].key); // newest routine open by default
+
+  container.innerHTML = list.map((r) => {
+    const open = historyOpen.has(r.key);
+    const totalVol = r.sessions.reduce((a, w) => a + workoutVolume(w), 0);
+    return `
+      <div class="hist-routine">
+        <div class="hist-routine-head" data-hist="${esc(r.key)}">
+          <strong>${esc(r.name)}</strong>
+          <span class="hist-meta">${r.sessions.length} session${r.sessions.length === 1 ? "" : "s"} · last ${fmtDate(r.sessions[0].date)} (${daysAgo(r.sessions[0].date)}) · ${Math.round(totalVol).toLocaleString()} kg total</span>
+          <span class="hist-caret">${open ? "▾" : "▸"}</span>
+        </div>
+        ${!open ? "" : r.sessions.map((w, i) => {
+          const groups = workoutStructure(w);
+          return `
+          <div class="hist-session">
+            <div class="hist-session-head">
+              <span class="hist-session-date">${fmtDate(w.date)}</span>
+              ${i === 0 ? `<span class="hist-last">latest</span>` : ""}
+              <span class="hist-session-vol">${daysAgo(w.date)} · ${Math.round(workoutVolume(w)).toLocaleString()} kg</span>
+              <div class="row-actions"><button type="button" class="danger" data-wk-del="${w.id}">Delete</button></div>
+            </div>
+            ${groups.length ? groups.map((g) => `
+              <div class="hist-ex">
+                <span class="hist-ex-name">${esc(g.exercise_name)}</span>
+                <span class="hist-ex-sets">${g.sets.map((s) => `${s.weight}×${s.reps}`).join("   ")}</span>
+              </div>`).join("") : `<div class="hist-ex"><span class="hist-ex-sets" style="color:var(--muted)">no sets recorded</span></div>`}
+          </div>`;
+        }).join("")}
+      </div>`;
+  }).join("");
+
+  container.querySelectorAll("[data-hist]").forEach((head) => {
+    head.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return;
+      const k = head.dataset.hist;
+      if (historyOpen.has(k)) historyOpen.delete(k); else historyOpen.add(k);
+      renderHistory();
+    });
+  });
+
+  container.querySelectorAll("[data-wk-del]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = +btn.dataset.wkDel;
+      const w = state.workouts.find((x) => x.id === id);
+      if (!confirm(`Delete the ${w ? fmtDate(w.date) : ""} session${w ? ` of "${w.name}"` : ""} and all of its sets?`)) return;
+      btn.disabled = true;
+      try {
+        await del("/workouts/" + id);
+        if (w) routineDrafts.delete(routineKey(w.name)); // template may have been the deleted session
+        await loadAll();
+      } catch (err) {
+        btn.disabled = false;
+        alert(err.message || "failed to delete workout.");
+      }
+    });
+  });
+}
+
+// ---------- PROGRESS CHART ----------
+const progressExerciseSelect = document.getElementById("progress-exercise");
+const progressMetricSelect = document.getElementById("progress-metric");
+
+function populateProgressExerciseSelect() {
+  const prev = progressExerciseSelect.value;
+  progressExerciseSelect.innerHTML = state.exercises.map((e) => `<option value="${e.id}">${esc(e.name)}</option>`).join("")
+    || `<option value="">no exercises yet</option>`;
+  if (prev) progressExerciseSelect.value = prev;
+}
+progressExerciseSelect.addEventListener("change", renderProgressChart);
+progressMetricSelect.addEventListener("change", renderProgressChart);
+
+function computeProgressSeries(exerciseId, metric) {
+  const workoutDate = new Map(state.workouts.map((w) => [w.id, w.date]));
+  const byWorkout = new Map(); // workout_id -> sets[]
+  state.sets.filter((s) => s.exercise_id === exerciseId).forEach((s) => {
+    if (!byWorkout.has(s.workout_id)) byWorkout.set(s.workout_id, []);
+    byWorkout.get(s.workout_id).push(s);
+  });
+
+  const points = [...byWorkout.entries()]
+    .filter(([wid]) => workoutDate.has(wid))
+    .map(([wid, sets]) => {
+      let value;
+      if (metric === "max_weight") value = Math.max(...sets.map((s) => s.weight));
+      else if (metric === "volume") value = sets.reduce((a, s) => a + s.weight * s.reps, 0);
+      else value = sets.reduce((a, s) => a + s.reps, 0);
+      return { date: new Date(workoutDate.get(wid)), value };
+    })
+    .sort((a, b) => a.date - b.date);
+
+  return points;
+}
+
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function renderProgressChart() {
+  const wrap = document.getElementById("progress-chart-wrap");
+  document.querySelector(".chart-tooltip")?.remove();
+
+  const exerciseId = +progressExerciseSelect.value;
+  const metric = progressMetricSelect.value;
+  if (!exerciseId) {
+    wrap.innerHTML = `<div class="chart-empty">log an exercise first to see progress here.</div>`;
+    return;
+  }
+  const points = computeProgressSeries(exerciseId, metric);
+
+  if (points.length < 2) {
+    wrap.innerHTML = `<div class="chart-empty">not enough sessions logged for this exercise yet — need at least 2 to plot a trend.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `<svg id="progress-chart"></svg>`;
+  const freshSvg = document.getElementById("progress-chart");
+
+  const metricLabel = { max_weight: "kg", volume: "kg total", reps: "reps total" }[metric];
+  const W = 900, H = 340, M = { top: 24, right: 28, bottom: 34, left: 54 };
+  const plotW = W - M.left - M.right, plotH = H - M.top - M.bottom;
+  freshSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const values = points.map((p) => p.value);
+  const maxV = Math.max(...values), minV = Math.min(0, Math.min(...values));
+  const niceMax = maxV <= 0 ? 1 : Math.ceil(maxV * 1.15 / 5) * 5 || maxV * 1.15;
+  const xFor = (i) => M.left + (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW);
+  const yFor = (v) => M.top + plotH - ((v - minV) / (niceMax - minV)) * plotH;
+
+  const gridColor = "#26271c", textMuted = "#85806a", textMain = "#d9d8c8", accent = "#c8862f", surfaceBg = "#0a0b07";
+
+  // gridlines + y ticks (rounded to clean-ish steps)
+  const tickCount = 4;
+  for (let i = 0; i <= tickCount; i++) {
+    const v = minV + ((niceMax - minV) * i) / tickCount;
+    const y = yFor(v);
+    freshSvg.appendChild(svgEl("line", { x1: M.left, x2: W - M.right, y1: y, y2: y, stroke: gridColor, "stroke-width": 1 }));
+    const label = svgEl("text", { x: M.left - 10, y: y + 4, "text-anchor": "end", fill: textMuted, "font-size": 13, "font-family": "ui-monospace, SF Mono, Cascadia Mono, JetBrains Mono, Consolas, Courier New, monospace" });
+    label.textContent = Math.round(v).toLocaleString();
+    freshSvg.appendChild(label);
+  }
+
+  // x labels: first, last, and a few evenly spaced in between
+  const xLabelIdxs = new Set([0, points.length - 1]);
+  const step = Math.ceil(points.length / 6);
+  for (let i = 0; i < points.length; i += step) xLabelIdxs.add(i);
+  xLabelIdxs.forEach((i) => {
+    const label = svgEl("text", { x: xFor(i), y: H - M.bottom + 22, "text-anchor": "middle", fill: textMuted, "font-size": 12.5, "font-family": "ui-monospace, SF Mono, Cascadia Mono, JetBrains Mono, Consolas, Courier New, monospace" });
+    label.textContent = points[i].date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+    freshSvg.appendChild(label);
+  });
+
+  // line
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"}${xFor(i)},${yFor(p.value)}`).join(" ");
+  freshSvg.appendChild(svgEl("path", { d: pathD, fill: "none", stroke: accent, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+  // dots with surface-color ring
+  const dotGroup = svgEl("g");
+  points.forEach((p, i) => {
+    dotGroup.appendChild(svgEl("circle", { cx: xFor(i), cy: yFor(p.value), r: 6, fill: surfaceBg }));
+    const dot = svgEl("circle", { cx: xFor(i), cy: yFor(p.value), r: 4.5, fill: accent, class: "chart-dot" });
+    dot.dataset.idx = i;
+    dotGroup.appendChild(dot);
+    // generous invisible hit target
+    const hit = svgEl("circle", { cx: xFor(i), cy: yFor(p.value), r: 14, fill: "transparent", style: "cursor:pointer" });
+    hit.dataset.idx = i;
+    dotGroup.appendChild(hit);
+  });
+  freshSvg.appendChild(dotGroup);
+
+  // endpoint direct label (spec: label the endpoint, not every point)
+  const lastPt = points[points.length - 1];
+  const endLabel = svgEl("text", {
+    x: xFor(points.length - 1), y: yFor(lastPt.value) - 14, "text-anchor": "end",
+    fill: textMain, "font-size": 14, "font-weight": 700, "font-family": "ui-monospace, SF Mono, Cascadia Mono, JetBrains Mono, Consolas, Courier New, monospace",
+  });
+  endLabel.textContent = `${lastPt.value.toLocaleString()} ${metricLabel}`;
+  freshSvg.appendChild(endLabel);
+
+  // crosshair (hidden until hover)
+  const crosshair = svgEl("line", { x1: 0, x2: 0, y1: M.top, y2: H - M.bottom, stroke: gridColor, "stroke-width": 1, style: "opacity:0" });
+  freshSvg.appendChild(crosshair);
+
+  // tooltip layer
+  let tooltip = null;
+  function showTooltip(i, evt) {
+    const p = points[i];
+    crosshair.setAttribute("x1", xFor(i)); crosshair.setAttribute("x2", xFor(i));
+    crosshair.style.opacity = 1;
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "chart-tooltip";
+      document.getElementById("progress-chart-outer").appendChild(tooltip);
+    }
+    const valueEl = document.createElement("div");
+    valueEl.className = "tt-value";
+    valueEl.textContent = `${p.value.toLocaleString()} ${metricLabel}`;
+    const dateEl = document.createElement("div");
+    dateEl.className = "tt-date";
+    dateEl.textContent = p.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    tooltip.replaceChildren(valueEl, dateEl);
+
+    const rect = freshSvg.getBoundingClientRect();
+    const outerRect = document.getElementById("progress-chart-outer").getBoundingClientRect();
+    const px = rect.left - outerRect.left + (xFor(i) / W) * rect.width;
+    const py = rect.top - outerRect.top + (yFor(p.value) / H) * rect.height;
+    tooltip.style.left = px + "px";
+    tooltip.style.top = py + "px";
+  }
+  function hideTooltip() {
+    crosshair.style.opacity = 0;
+    tooltip?.remove();
+    tooltip = null;
+  }
+  dotGroup.querySelectorAll("circle[data-idx]").forEach((el) => {
+    el.addEventListener("pointerenter", () => showTooltip(+el.dataset.idx));
+    el.addEventListener("pointermove", () => showTooltip(+el.dataset.idx));
+  });
+  freshSvg.addEventListener("pointerleave", hideTooltip);
+}
+
+// ---------- utils ----------
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+}
+
+// ---------- AI terminal ----------
+const termLog = document.getElementById("term-log");
+const termForm = document.getElementById("term-form");
+const termInput = document.getElementById("term-input");
+
+function appendLine(role, tag, text) {
+  const div = document.createElement("div");
+  div.className = "term-line " + role;
+  div.innerHTML = `<span class="tag">${esc(tag)}</span><span class="body">${esc(text)}</span>`;
+  termLog.appendChild(div);
+  termLog.scrollTop = termLog.scrollHeight;
+  return div;
+}
+
+termForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = termInput.value.trim();
+  if (!msg) return;
+  appendLine("user", "you", msg);
+  termInput.value = "";
+  termInput.disabled = true;
+  termForm.querySelector("button").disabled = true;
+  const pending = appendLine("sys", "advisor", "thinking…");
+  try {
+    const res = await post("/agent/ask", { message: msg });
+    pending.remove();
+    appendLine("ai", "advisor", res.response);
+  } catch (err) {
+    pending.remove();
+    appendLine("sys", "error", err.message || "the advisor didn't respond");
+  } finally {
+    termInput.disabled = false;
+    termForm.querySelector("button").disabled = false;
+    termInput.focus();
+  }
+});
+
+loadAll().catch((err) => appendLine("sys", "error", "failed to load data: " + err.message));
+</script>
+</body>
+</html>

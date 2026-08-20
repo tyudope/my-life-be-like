@@ -34,7 +34,8 @@ class Workout(Base):
     id:Mapped[int] = mapped_column(primary_key=True)
     name:Mapped[str] = mapped_column(String(20), nullable=False)
     date:Mapped[datetime] = mapped_column(server_default=func.now())
-    sets:Mapped[list["ExerciseSet"]] = relationship(back_populates="workout")
+    # deleting a workout deletes its sets — a set has no meaning without its workout
+    sets:Mapped[list["ExerciseSet"]] = relationship(back_populates="workout", cascade="all, delete-orphan")
 
 
 
